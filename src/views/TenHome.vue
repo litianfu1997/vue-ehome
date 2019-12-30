@@ -18,11 +18,10 @@
                     </el-menu-item-group>
 
                 </el-submenu>
-                <el-submenu index="3">
-                    <template slot="title"><i class="el-icon-setting"></i>其他相关</template>
+                <el-submenu index="advise">
+                    <template slot="title"><i class="el-icon-setting"></i>投诉建议</template>
                     <el-menu-item-group>
-                        <el-menu-item index="3-1">选项1</el-menu-item>
-                        <el-menu-item index="3-2">选项2</el-menu-item>
+                        <el-menu-item @click="adviseList" index="adviseList">投诉列表</el-menu-item>
                     </el-menu-item-group>
 
                 </el-submenu>
@@ -229,6 +228,37 @@
                 </el-dialog>
             </el-main>
 
+            <!--投诉列表-->
+            <el-main v-show="showFlag == 6">
+                <el-table
+                        :data="tableDataAdvise.filter(data => !search || data.content.toLowerCase().includes(search.toLowerCase())
+                        || data.name.toLowerCase().includes(search.toLowerCase())
+                        || data.type.toLowerCase().includes(search.toLowerCase()))"
+                        stripe
+                        :default-sort="{prop: 'createTime', order: 'descending'}"
+                        v-loading="loadingFlag">
+                    <el-table-column type="index" width="50" label="序号"></el-table-column>
+                    <el-table-column prop="createTime" sortable label="创建时间" width="150px"></el-table-column>
+                    <el-table-column prop="department" label="投诉部门" width="80"></el-table-column>
+                    <el-table-column prop="type" label="投诉类型" width="80"></el-table-column>
+                    <el-table-column prop="name" label="投诉人" width="80"></el-table-column>
+                    <el-table-column prop="phone" label="手机号码" width="100"></el-table-column>
+                    <el-table-column prop="content" label="投诉内容"></el-table-column>
+                    <el-table-column
+                            width="180px"
+                            align="right">
+                        <template slot="header" slot-scope="scope">
+                            <el-input
+                                    v-model="search"
+                                    size="mini"
+                                    placeholder="输入关键字搜索"/>
+                        </template>
+
+                    </el-table-column>
+
+                </el-table>
+            </el-main>
+
         </el-container>
     </el-container>
 </template>
@@ -239,6 +269,7 @@
             return {
                 tableData: '',
                 tableDataNotice: [],
+                tableDataAdvise: [],
                 search: '',
                 community: JSON.parse(sessionStorage.getItem("community")),
                 manager: JSON.parse(sessionStorage.getItem("manager")),
@@ -433,7 +464,35 @@
                             })
                         }
                     })
+            },
+            //投诉建议列表
+            adviseList() {
+
+                this.showFlag = 6;
+                this.loadingFlag = true
+                this.axios.get('/ten/adviseList', {params: {'communityId': this.community.communityId}})
+                    .then(res => {
+                        console.log(res);
+                        let list = res.data.data.adviseList;
+                        list.forEach((item, index) => {
+                            if (item.type == 0) {
+                                item.type = '实名投诉'
+
+                            } else {
+                                item.type = '匿名投诉'
+                                item.name = '匿名'
+                                item.phone = '无'
+                            }
+                        })
+                        this.tableDataAdvise = list
+                        this.loadingFlag = false
+
+                    })
+                    .catch(res => {
+
+                    })
             }
+
 
 
         },

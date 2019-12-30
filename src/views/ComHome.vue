@@ -74,7 +74,7 @@
                         || data.createTime.toLowerCase().includes(search.toLowerCase()))"
                         stripe
                         :default-sort="{prop: 'createTime', order: 'descending'}"
-                        v-loading="loadingFlagNotice">
+                        v-loading="loadingFlag">
                     <el-table-column type="index" width="50" label="序号"></el-table-column>
                     <el-table-column prop="createTime" sortable label="创建时间" width="150px"></el-table-column>
                     <el-table-column prop="title" label="标题"></el-table-column>
@@ -135,7 +135,7 @@
                         :data="tableDataIssue.filter(data => !search || data.title.toLowerCase().includes(search.toLowerCase()))"
                         stripe
                         :default-sort="{prop: 'createTime', order: 'descending'}"
-                        v-loading="loadingFlagNotice">
+                        v-loading="loadingFlag">
                     <el-table-column type="index" width="50" label="序号"></el-table-column>
                     <el-table-column prop="issueTitle" sortable label="标题" width="150px"></el-table-column>
                     <el-table-column prop="issueContent" label="内容"></el-table-column>
@@ -195,7 +195,7 @@
                     </el-col>
                 </el-row>
             </el-main>
-
+            <!--投诉列表-->
             <el-main v-show="showFlag == 6">
                 <el-table
                         :data="tableDataAdvise.filter(data => !search || data.content.toLowerCase().includes(search.toLowerCase())
@@ -203,14 +203,14 @@
                         || data.type.toLowerCase().includes(search.toLowerCase()))"
                         stripe
                         :default-sort="{prop: 'createTime', order: 'descending'}"
-                        v-loading="loadingFlagNotice">
+                        v-loading="loadingFlag">
                     <el-table-column type="index" width="50" label="序号"></el-table-column>
                     <el-table-column prop="createTime" sortable label="创建时间" width="150px"></el-table-column>
                     <el-table-column prop="department" label="投诉部门" width="80"></el-table-column>
                     <el-table-column prop="type" label="投诉类型" width="80"></el-table-column>
                     <el-table-column prop="name" label="投诉人" width="80"></el-table-column>
                     <el-table-column prop="phone" label="手机号码" width="100"></el-table-column>
-                    <el-table-column prop="content" label="投诉内容" ></el-table-column>
+                    <el-table-column prop="content" label="投诉内容"></el-table-column>
                     <el-table-column
                             width="180px"
                             align="right">
@@ -237,7 +237,7 @@
                 tableData: '',
                 tableDataNotice: [],
                 tableDataIssue: [],
-                tableDataAdvise:[],
+                tableDataAdvise: [],
                 search: '',
                 community: JSON.parse(sessionStorage.getItem("community")),
                 manager: JSON.parse(sessionStorage.getItem("manager")),
@@ -300,7 +300,7 @@
             //全部公告
             allNotice() {
                 this.showFlag = 3;
-                this.loadingFlagNotice = true
+                this.loadingFlag = true
                 this.axios.get('/ten/getNoticeListByType', {
                     params: {
                         'communityId': this.community.communityId,
@@ -309,7 +309,7 @@
                 })
                     .then(res => {
                         this.tableDataNotice = res.data.data.noticeList
-                        this.loadingFlagNotice = false
+                        this.loadingFlag = false
                     })
             },
             //提交公告
@@ -405,6 +405,7 @@
             issueList() {
                 var that = this;
                 this.showFlag = 4;
+                this.loadingFlag = true
                 this.axios.get('/issue/issueList', {
                     params: {
                         'communityId': this.community.communityId
@@ -426,6 +427,7 @@
                             item.issueEndTime = end;
                         })
                         this.tableDataIssue = list;
+                        this.loadingFlag = false;
                     })
                     .catch(err => {
 
@@ -481,17 +483,18 @@
             },
 
             //投诉建议列表
-            adviseList(){
+            adviseList() {
                 this.showFlag = 6;
-                this.axios.get('/ten/adviseList',{params:{'communityId':this.community.communityId}})
-                    .then(res=>{
+                this.loadingFlag = true
+                this.axios.get('/ten/adviseList', {params: {'communityId': this.community.communityId}})
+                    .then(res => {
                         console.log(res);
                         let list = res.data.data.adviseList;
-                        list.forEach((item,index)=>{
-                            if (item.type == 0){
+                        list.forEach((item, index) => {
+                            if (item.type == 0) {
                                 item.type = '实名投诉'
 
-                            }else {
+                            } else {
                                 item.type = '匿名投诉'
                                 item.name = '匿名'
                                 item.phone = '无'
@@ -499,8 +502,9 @@
                         })
 
                         this.tableDataAdvise = list
+                        this.loadingFlag = false;
                     })
-                    .catch(res=>{
+                    .catch(res => {
 
                     })
             }
